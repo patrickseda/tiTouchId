@@ -1,0 +1,19 @@
+"#mainWindow" : {
+	backgroundColor : "#fff"
+}
+"#statusLabel" : {
+	top : 150,
+	left : 0,
+	right : 0,
+	height : 50,
+	color : "#444",
+	textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER,
+	text : "TouchID Demo"
+}
+"#authorizeButton" : {
+	top : 350,
+	width : 200,
+	height : 50,
+	borderColor : "#ddd",
+	title : "Authorize"
+}

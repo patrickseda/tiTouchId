@@ -1,0 +1,6 @@
+<Alloy>
+	<Window id="mainWindow">
+		<Label id="statusLabel" />
+		<Button id="authorizeButton" />
+	</Window>
+</Alloy>
