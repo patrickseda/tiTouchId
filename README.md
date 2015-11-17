@@ -24,7 +24,7 @@ If a TouchID event occurs which has not been given a specific handler callback, 
 - failedAuthCB
 - userCancelCB
 - userFallbackCB
-- notErolledCB
+- notEnrolledCB
 - notAvailableCB
 - systemCancelCB
 - passcodeNotSetCB

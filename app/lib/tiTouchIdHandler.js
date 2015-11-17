@@ -19,7 +19,7 @@
  *     - failedAuthCB
  *     - userCancelCB
  *     - userFallbackCB
- *     - notErolledCB
+ *     - notEnrolledCB
  *     - notAvailableCB
  *     - systemCancelCB
  *     - passcodeNotSetCB
@@ -28,6 +28,19 @@
  */
 var tiTouchIdHandler = (function() {
 	var tiTouchId = OS_IOS ? require('ti.touchid') : null;
+
+	// Determine availability from a device persepective.
+	function isTouchIdAvailable() {
+		var canAuthenticate = false;
+		if (tiTouchId) {
+			var deviceCanAuthenticateResult = tiTouchId.deviceCanAuthenticate();
+			canAuthenticate = deviceCanAuthenticateResult.canAuthenticate;
+			if (!canAuthenticate) {
+				console.error('[tiTouchIdHandler] - isTouchIdAvailable() - deviceCanAuthenticateResult=' + JSON.stringify(deviceCanAuthenticateResult));
+			}
+		}
+		return canAuthenticate;
+	}
 
 	// Start the authentication listener, tell it how to react to the user (via callbacks).
 	function start(config) {
@@ -50,14 +63,14 @@ var tiTouchIdHandler = (function() {
 					failedAuthCB : config.failedAuthCB || defaultFailedAuthCB,
 					userCancelCB : config.userCancelCB || defaultFailedAuthCB,
 					userFallbackCB : config.userFallbackCB || defaultFailedAuthCB,
-					notErolledCB : config.notErolledCB || defaultFailedAuthCB,
+					notEnrolledCB : config.notEnrolledCB || defaultFailedAuthCB,
 					notAvailableCB : config.notAvailableCB || defaultFailedAuthCB,
 					systemCancelCB : config.systemCancelCB || defaultFailedAuthCB,
 					passcodeNotSetCB : config.passcodeNotSetCB || defaultFailedAuthCB,
 				};
 				var reasonMessage = (typeof config.reasonMessage === 'string') ? config.reasonMessage : 'Fingerprint Authorization';
 
-				if (tiTouchId.deviceCanAuthenticate().canAuthenticate) {
+				if (isTouchIdAvailable()) {
 					// Initiate the Touch ID authentication process.
 					tiTouchId.authenticate({
 						reason: reasonMessage,
@@ -76,7 +89,7 @@ var tiTouchIdHandler = (function() {
 										callbacks.userFallbackCB();
 										break;
 									case tiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED: // Touch ID does not have any enrolled fingerprints.
-										callbacks.notErolledCB();
+										callbacks.notEnrolledCB();
 										break;
 									case tiTouchId.ERROR_TOUCH_ID_NOT_AVAILABLE: // Touch ID is not available on the device.
 										callbacks.notAvailableCB();
@@ -108,9 +121,10 @@ var tiTouchIdHandler = (function() {
 		}
 	}
 
-    // Public API.
+	// Public API.
 	return {
-		start : start
+		isTouchIdAvailable: isTouchIdAvailable,
+		start: start
 	}
 })();
 
