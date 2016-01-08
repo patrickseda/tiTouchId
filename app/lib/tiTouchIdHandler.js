@@ -29,7 +29,26 @@
 var tiTouchIdHandler = (function() {
 	var tiTouchId = OS_IOS ? require('ti.touchid') : null;
 
-	// Determine availability from a device persepective.
+	var statusCodes = {};
+	if (tiTouchId) {
+		statusCodes = {
+			OK: 0,
+			UNKNOWN: -9999,
+			ERROR_AUTHENTICATION_FAILED: tiTouchId.ERROR_AUTHENTICATION_FAILED, // -1
+			ERROR_USER_CANCEL: tiTouchId.ERROR_USER_CANCEL, // -2
+			ERROR_USER_FALLBACK: tiTouchId.ERROR_USER_FALLBACK, // -3
+			ERROR_SYSTEM_CANCEL: tiTouchId.ERROR_SYSTEM_CANCEL, // -4
+			ERROR_PASSCODE_NOT_SET: tiTouchId.ERROR_PASSCODE_NOT_SET, // -5
+			ERROR_TOUCH_ID_NOT_AVAILABLE: tiTouchId.ERROR_TOUCH_ID_NOT_AVAILABLE, // -6
+			ERROR_TOUCH_ID_NOT_ENROLLED: tiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED, // -7
+			ERROR_APP_CANCELLED: tiTouchId.ERROR_APP_CANCELLED, // -8
+			ERROR_INVALID_CONTEXT: tiTouchId.ERROR_INVALID_CONTEXT, // -9
+			ERROR_TOUCH_ID_LOCKOUT: tiTouchId.ERROR_TOUCH_ID_LOCKOUT, // -10
+			ERROR_SIMULATOR_UNSUPPORTED: -1000
+		};
+	}
+
+	// Determine current availability from a device perspective.
 	function isTouchIdAvailable() {
 		var canAuthenticate = false;
 		if (tiTouchId) {
@@ -40,6 +59,29 @@ var tiTouchIdHandler = (function() {
 			}
 		}
 		return canAuthenticate;
+	}
+
+	// Determine current availability from a device perspective.
+	function deviceSupportsTouchId() {
+		var isSupported = false;
+		if (tiTouchId) {
+			var status = authStatus();
+			isSupported = (status !== statusCodes.ERROR_TOUCH_ID_NOT_AVAILABLE) && (status !== statusCodes.ERROR_SIMULATOR_UNSUPPORTED);
+		}
+		return isSupported;
+	}
+
+	// Ask the OS for its current TouchID auth status.
+	function authStatus() {
+		var statusCode = null;
+		if (tiTouchId) {
+			statusCode = tiTouchId.deviceCanAuthenticate().code;
+		}
+		// Check for codes that may not be known by the TouchID module.
+		if (statusCode == null) {
+			statusCode = statusCodes.UNKNOWN;
+		}
+		return statusCode;
 	}
 
 	// Start the authentication listener, tell it how to react to the user (via callbacks).
@@ -121,9 +163,12 @@ var tiTouchIdHandler = (function() {
 		}
 	}
 
-	// Public API.
+    // Public API.
 	return {
 		isTouchIdAvailable: isTouchIdAvailable,
+		deviceSupportsTouchId: deviceSupportsTouchId,
+		authStatus: authStatus,
+		statusCodes: statusCodes,
 		start: start
 	}
 })();
